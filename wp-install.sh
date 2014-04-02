@@ -33,6 +33,9 @@ MULTISITE=0
 # if you want to use subdomains, set this to 1 (don't change this unless you KNOW it will work)
 SUBDOMAINS=0
 
+# install theme unit test content. (recommended)
+THEMEUNIT=1
+
 #---- Optional Options ----#
 
 ##-- Database --##
@@ -105,6 +108,25 @@ if which wp>/dev/null; then
 	else
 		eval "wp core install ${INSTALL}";
 	fi
+	
+	# now that core is installed, check to see if we should install the theme unit test data
+	if [[ THEMEUNIT -ge 1 ]]; then
+		#install the importer
+		wp plugin install wordpress-importer
+		
+		# activate the importer
+		wp plugin activate wordpress-importer
+		
+		# path to this script 
+		WPINSTALLPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+		
+		# replace the username in the csv template and create a new file
+		sed "s/@@user@@/${ADMINUSER}/g" "${WPINSTALLPATH}/assets/user-map-template.csv" > "${WPINSTALLPATH}/assets/user-map.csv"
+		
+		# import the content and map over the users
+		eval "wp import ${WPINSTALLPATH}/assets/theme-unit-test-data.xml --authors=${WPINSTALLPATH}/assets/user-map.csv"
+	fi	
+	
 else
 	echo 'wp-cli is not installed.'
 fi
