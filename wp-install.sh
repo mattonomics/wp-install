@@ -88,19 +88,24 @@ fi
 
 INSTALL="--url=${URL} --title=${TITLE} --admin_user=${ADMINUSER} --admin_password=${ADMINPASSWORD} --admin_email=${ADMINEMAIL}"
 
-# do the download
-wp core download;
+if which wp>/dev/null; then
+	# do the download
+	wp core download;
 
-# set up the config file
-eval "wp core config ${CONFIG}";
+	# set up the config file
+	eval "wp core config ${CONFIG}";
 
-# see if multisite is requested
-if [[ MULTISITE -ge 1 ]];
-then
-	if [[ SUBDOMAINS -ge 1 ]]; then
-		INSTALL+=" --subdomains"
+	# see if multisite is requested
+	if [[ MULTISITE -ge 1 ]];
+	then
+		if [[ SUBDOMAINS -ge 1 ]]; then
+			INSTALL+=" --subdomains"
+		fi
+		eval "wp core multisite-install ${INSTALL}";
+	else
+		eval "wp core install ${INSTALL}";
 	fi
-	eval "wp core multisite-install ${INSTALL}";
 else
-	eval "wp core install ${INSTALL}";
+	echo 'wp-cli is not installed.'
 fi
+
