@@ -10,5 +10,5 @@ Quick and dirty way to install WordPress using wp-cli.
 4. Create a mysql database and have your mysql username and password ready.
 5. Fill in all the variables in wp-install.sh
 6. Navigate to the directory where you want to install WordPress using `cd /path/to/wp`
-7. Type `/path/to/wp-install/wp-install.sh`
+7. Type `/path/to/wp-install/wp-install.sh` and press enter.
 8. Drink a beer.
