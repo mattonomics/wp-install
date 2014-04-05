@@ -1,5 +1,9 @@
 #! /bin/bash
 
+# Author: Matt Gross
+# Version: 0.1
+# License: MIT
+
 # Since the wp command will simply work in the present directory, there is no need for a path
 # So, let's start with the critical parts, then allow you to change all the options
 
@@ -27,15 +31,6 @@ ADMINPASSWORD=""
 # admin email (required)
 ADMINEMAIL=""
 
-# for a multisite install, set this to 1
-MULTISITE=0
-
-# if you want to use subdomains, set this to 1 (don't change this unless you KNOW it will work)
-SUBDOMAINS=0
-
-# install theme unit test content. (recommended)
-THEMEUNIT=1
-
 #---- Optional Options ----#
 
 ##-- Database --##
@@ -53,6 +48,29 @@ DBCOLLATE=""
 
 # language constant
 LOCALE=""
+
+##-- Multisite --##
+# for a multisite install, set this to 1
+MULTISITE=0
+
+# if you want to use subdomains, set this to 1 (don't change this unless you KNOW it will work)
+SUBDOMAINS=0
+
+##-- Theme Unit Test --##
+# install theme unit test content. Set to 1 and it will populate your install with content. Great for dev.
+THEMEUNIT=0
+
+##-- Permalinks --##
+
+# see: https://github.com/wp-cli/wp-cli/issues/1098
+
+# Permalink structure. Leave blank for default. Choose from:
+#	- /%year%/%monthnum%/%day%/%postname%/
+#	- /%year%/%monthnum%/%postname%/
+#	- /archives/%post_id%
+#	- /%postname%/
+#	- create your own IF YOU KNOW WHAT YOU'RE DOING.
+PERMALINK=""
 
 ######------ No need to change anything down here! ------######
 
@@ -99,8 +117,7 @@ if which wp>/dev/null; then
 	eval "wp core config ${CONFIG}";
 
 	# see if multisite is requested
-	if [[ MULTISITE -ge 1 ]];
-	then
+	if [[ MULTISITE -ge 1 ]]; then
 		if [[ SUBDOMAINS -ge 1 ]]; then
 			INSTALL+=" --subdomains"
 		fi
@@ -125,7 +142,20 @@ if which wp>/dev/null; then
 		
 		# import the content and map over the users
 		eval "wp import ${WPINSTALLPATH}/assets/theme-unit-test-data.xml --authors=${WPINSTALLPATH}/assets/user-map.csv"
+		
+		# deactivate importer
+		wp plugin deactivate wordpress-importer;
 	fi	
+	
+	# do we want to set up permalinks?
+	if [[ "$PERMALINK" ]]; then
+		# currently, the permalink setting gets update, but doesn't appear to actually flush the rules
+		# see: https://github.com/wp-cli/wp-cli/issues/1098
+		
+		# update the option
+		eval "wp rewrite structure '${PERMALINK}' --hard"
+		wp rewrite flush --hard
+	fi
 	
 else
 	echo 'wp-cli is not installed.'
